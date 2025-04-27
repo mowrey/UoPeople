@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UoPeople: AI-Assisted Collaboration</title>
+    <style>
+        /* --- Light Theme Purple Palette --- */
+        :root {
+            --bg-primary: #FFFFFF; /* White (e.g., container background) */
+            --bg-secondary: #F8F5FC; /* Very Pale Purple/Lavender (body background) */
+            --border-primary: #DCD0E8; /* Light Purple/Grey (main borders) */
+            --border-secondary: #EAE6EF; /* Very Light Purple/Grey (secondary borders, inputs) */
+            --text-primary: #333333; /* Dark Grey (main text) */
+            --text-secondary: #776B8A; /* Muted Purple/Grey (secondary text, meta) */
+            --text-link: #6A0DAD; /* Purple (links) */
+            --text-white: #FFFFFF; /* White (used on dark buttons) */
+
+            /* Buttons */
+            --btn-primary-bg: #9370DB; /* Medium Purple */
+            --btn-primary-hover-bg: #8A2BE2; /* BlueViolet (Darker Purple) */
+            --btn-primary-text: var(--text-white);
+            --btn-primary-border: transparent; /* Or use a slightly darker purple like #8A2BE2 */
+            --btn-primary-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --btn-primary-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+            --btn-secondary-bg: #F3EFFF; /* Very Light Purple */
+            --btn-secondary-hover-bg: #E9D8FF; /* Slightly Darker Light Purple */
+            --btn-secondary-text: var(--text-link);
+            --btn-secondary-border: #C9B3E8; /* Light Purple Border */
+            --btn-secondary-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --btn-secondary-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+            /* Danger Button (using a pink/red for clarity, but could be adapted to purple if preferred) */
+            --btn-danger-bg: #FEEAF0; /* Light Pink */
+            --btn-danger-hover-bg: #FDDCE6; /* Slightly Darker Pink */
+            --btn-danger-text: #D32F2F; /* Medium Red */
+            --btn-danger-hover-text: #B71C1C; /* Dark Red */
+            --btn-danger-border: #F8BBD0; /* Light Pink Border */
+            --btn-danger-hover-border: #F4A8BC; /* Darker Pink Border */
+            --btn-danger-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --btn-danger-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+            --btn-disabled-bg: #F5F5F5; /* Light Grey */
+            --btn-disabled-text: #BDBDBD; /* Medium Grey */
+            --btn-disabled-border: #EEEEEE; /* Lighter Grey */
+
+            /* Inputs & Selects */
+            --input-bg: #FFFFFF; /* White */
+            --input-border: var(--border-secondary); /* #EAE6EF */
+            --input-focus-border: var(--text-link); /* #6A0DAD */
+            --input-focus-shadow: 0 0 0 3px rgba(106, 13, 173, 0.15); /* Light purple glow */
+            --input-text: var(--text-primary); /* #333333 */
+
+            /* Status Indicators */
+            --status-success-bg: #E8F5E9; /* Light Green */
+            --status-success-text: #2E7D32; /* Dark Green */
+            --status-success-border: #A5D6A7; /* Medium Green */
+            --status-error-bg: #FFEBEE; /* Light Red */
+            --status-error-text: #C62828; /* Dark Red */
+            --status-error-border: #EF9A9A; /* Medium Red */
+            --status-connecting-bg: #F3EFFF; /* Light Purple */
+            --status-connecting-text: var(--text-link); /* Purple */
+            --status-connecting-border: #C9B3E8; /* Light Purple */
+
+            /* Chat Bubbles */
+            --own-message-bg: #9370DB; /* Medium Purple */
+            --own-message-text: var(--text-white); /* White */
+            --own-message-border: #8A2BE2; /* Darker Purple */
+            --peer-message-bg: #F1F1F1; /* Light Grey */
+            --peer-message-text: var(--text-primary); /* Dark Grey */
+            --peer-message-border: #E0E0E0; /* Medium Grey */
+            --system-message-color: var(--text-secondary); /* Muted Purple/Grey */
+            --ai-message-bg: #F8F5FC; /* Very Pale Purple/Lavender */
+            --ai-message-text: #512DA8; /* Deep Purple */
+            --ai-message-border: #B39DDB; /* Light-Medium Purple */
+
+            --border-radius: 6px; /* Keep original */
+        }
+
+        /* --- Layout Adjustments for Full Height & Internal Scroll --- */
+        html {
+            height: 100%;
+            overflow: hidden; /* Prevent scroll on html */
+        }
+        body {
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+            display:flex;
+            flex-direction:column; /* Stack container and footer vertically */
+            align-items:center; /* Center container horizontally */
+            height: 100%; /* Use full html height */
+            padding: 0 24px; /* Padding left/right */
+            background-color:var(--bg-secondary); /* Light Theme: Very Pale Purple */
+            color:var(--text-primary); /* Light Theme: Dark Grey */
+            font-size:14px;
+            line-height:1.5;
+            box-sizing:border-box;
+            margin: 0;
+            overflow: hidden; /* Prevent body scrollbar */
+        }
+        .container {
+            width:100%;
+            max-width:720px;
+            background:var(--bg-primary); /* Light Theme: White */
+            border-radius:var(--border-radius);
+            border:1px solid var(--border-primary); /* Light Theme: Light Purple/Grey */
+            display:flex; /* Make container a flex container */
+            flex-direction:column; /* Stack header/content vertically */
+            flex-grow: 1;
+            flex-shrink: 1;
+            height: 0; /* Needed for flex-grow to work correctly with overflow */
+            min-height: 400px;
+            overflow: hidden; /* Prevent container scrollbar */
+            margin: 24px 0; /* Vertical margin top/bottom */
+        }
+         /* --- End Layout Adjustments --- */
+
+        .header {
+            padding:16px 24px;
+            border-bottom:1px solid var(--border-primary); /* Light Theme */
+            text-align:center;
+            background-color:var(--bg-primary); /* Light Theme: White (same as container) */
+            flex-shrink:0;
+            border-top-left-radius: var(--border-radius); /* Match container rounding */
+            border-top-right-radius: var(--border-radius);
+        }
+        .header h2 {margin:0;font-size:1.35em;font-weight:600;color:var(--text-primary)} /* Light Theme */
+        .header .brand {color:var(--text-link);font-weight:600} /* Light Theme: Purple */
+
+        .content-area {
+            padding: 24px;
+            display:flex; /* Make content area a flex container */
+            flex-direction:column; /* Stack status/setup/chat vertically */
+            flex-grow:1; /* Allow content area to fill container */
+            overflow: hidden; /* Prevent this from scrolling */
+        }
+        textarea {
+            width:100%;
+            box-sizing:border-box;
+            min-height:34px;
+            padding:8px 12px;
+            border:1px solid var(--input-border); /* Light Theme */
+            border-radius:var(--border-radius);
+            font-family:inherit;
+            font-size:1em;
+            resize:none;
+            background-color:var(--input-bg); /* Light Theme */
+            box-shadow:none;
+            transition:border-color .2s ease,box-shadow .2s ease;
+            color:var(--input-text); /* Light Theme */
+            line-height:1.5;
+            overflow-y:hidden;
+            margin-bottom:0
+        }
+        textarea:focus {outline:none;border-color:var(--input-focus-border);box-shadow:var(--input-focus-shadow)} /* Light Theme */
+        select {
+             padding: 5px 10px;
+             background-color: var(--input-bg); /* Light Theme */
+             color: var(--input-text); /* Light Theme */
+             border: 1px solid var(--input-border); /* Light Theme */
+             border-radius: var(--border-radius);
+             font-size: 14px; flex-grow: 1; margin-right: 8px; height: 34px; /* Match textarea min-height */ cursor: pointer;
+             appearance: none; /* Optional: for custom arrow later */
+             background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23776B8A%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); /* Simple SVG Arrow */
+             background-repeat: no-repeat;
+             background-position: right 10px center;
+             background-size: .65em auto;
+             padding-right: 30px; /* Space for arrow */
+        }
+        select:focus { outline: none; border-color: var(--input-focus-border); box-shadow: var(--input-focus-shadow); } /* Light Theme */
+        select:disabled { cursor: not-allowed; opacity: 0.6; background-color: #f9f9f9; } /* Lighter disabled background */
+        input::placeholder,textarea::placeholder {color:var(--text-secondary)} /* Light Theme */
+
+        button {
+            position:relative;
+            display:inline-block;
+            padding:6px 16px; /* Slightly taller padding */
+            font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;vertical-align:middle;cursor:pointer;-webkit-user-select:none;user-select:none;
+            border:1px solid var(--btn-primary-border); /* Light Theme */
+            border-radius:var(--border-radius);appearance:none;
+            transition:background-color .2s cubic-bezier(.3,0,.5,1),border-color .2s ease, color .2s ease; /* Added color transition */
+            margin-right:8px;margin-bottom:10px;text-align:center;
+            background-color:var(--btn-primary-bg); /* Light Theme */
+            color:var(--btn-primary-text); /* Light Theme */
+            box-shadow:var(--btn-primary-shadow),var(--btn-primary-inset-shadow); /* Light Theme */
+        }
+        button:hover:not(:disabled) {background-color:var(--btn-primary-hover-bg);text-decoration:none;transition-duration:.1s; border-color: var(--btn-primary-hover-bg)} /* Ensure border matches on hover */
+        button:active:not(:disabled) {background-color:var(--btn-primary-hover-bg);box-shadow:none;transition:none}
+        button:disabled {color:var(--btn-disabled-text);background-color:var(--btn-disabled-bg);border-color:var(--btn-disabled-border);cursor:not-allowed;box-shadow:none} /* Light Theme */
+
+        button.secondary {
+            color:var(--btn-secondary-text); /* Light Theme */
+            background-color:var(--btn-secondary-bg); /* Light Theme */
+            border-color:var(--btn-secondary-border); /* Light Theme */
+            box-shadow:var(--btn-secondary-shadow),var(--btn-secondary-inset-shadow); /* Light Theme */
+        }
+        button.secondary:hover:not(:disabled) {background-color:var(--btn-secondary-hover-bg);border-color:var(--btn-secondary-border); color: var(--btn-secondary-text)} /* Light Theme */
+        button.secondary:disabled {color:var(--btn-disabled-text);background-color:var(--btn-disabled-bg);border-color:var(--btn-disabled-border)} /* Light Theme */
+
+        button.disconnect {
+            color:var(--btn-danger-text); /* Light Theme */
+            background-color:var(--btn-danger-bg); /* Light Theme */
+            border-color:var(--btn-danger-border); /* Light Theme */
+            box-shadow:var(--btn-danger-shadow),var(--btn-danger-inset-shadow); /* Light Theme */
+        }
+        button.disconnect:hover:not(:disabled) {background-color:var(--btn-danger-hover-bg);color:var(--btn-danger-hover-text);border-color:var(--btn-danger-hover-border)} /* Light Theme */
+        button.disconnect:disabled {color:var(--btn-disabled-text);background-color:var(--btn-disabled-bg);border-color:var(--btn-disabled-border)} /* Use standard disabled */
+
+        #chat-interface {
+            display:flex; /* Use flexbox */
+            flex-direction:column; /* Stack children vertically */
+            flex-grow:1; /* Allow interface to fill content area */
+            overflow: hidden; /* Prevent this element from scrolling */
+            min-height: 0; /* Important for flex-grow in some browsers */
+        }
+        #chat-area-wrapper {
+            display:flex; /* Use flexbox */
+            flex-direction:column; /* Stack log and input */
+            flex-grow:1; /* Grow to fill chat-interface */
+            overflow: hidden; /* Prevent wrapper scroll */
+            margin-top:5px;
+            border:1px solid var(--border-primary); /* Light Theme */
+            border-radius:var(--border-radius);
+            background-color:var(--bg-primary); /* Light Theme: White */
+        }
+        #chat-log {
+            flex-grow: 1; /* Allow log to take up available space */
+            overflow-y: auto; /* <<< SCROLL BAR HERE <<< */
+            padding:16px;
+            font-size:1em;
+            display:flex; /* Keep flex for inner */
+            flex-direction:column; /* Keep flex for inner */
+             min-height: 100px; /* Optional minimum height */
+             background-color: var(--bg-primary); /* Ensure chat log itself is white */
+        }
+        #chat-log-inner {display:flex;flex-direction:column;gap:12px}
+        #chat-log .message {
+            padding:8px 12px;
+            border-radius:var(--border-radius);
+            max-width:80%;word-wrap:break-word;line-height:1.5;
+            border:1px solid transparent;position:relative;display:flex;flex-direction:column;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05); /* Subtle shadow for messages */
+        }
+        #chat-log .own {
+            background-color:var(--own-message-bg); /* Light Theme: Medium Purple */
+            color:var(--own-message-text); /* Light Theme: White */
+            border-color:var(--own-message-border); /* Light Theme: Darker Purple */
+            align-self:flex-end;margin-left:auto;border-bottom-right-radius:0;
+        }
+        #chat-log .peer {
+            background-color:var(--peer-message-bg); /* Light Theme: Light Grey */
+            color:var(--peer-message-text); /* Light Theme: Dark Grey */
+            border-color:var(--peer-message-border); /* Light Theme: Medium Grey */
+            align-self:flex-start;margin-right:auto;border-bottom-left-radius:0
+        }
+        #chat-log .system {
+            font-size:.9em;text-align:center;
+            color:var(--system-message-color); /* Light Theme: Muted Purple/Grey */
+            background:transparent; align-self:center;
+            padding:8px 0;width:100%;border:none;max-width:100%;
+            box-shadow: none; /* No shadow for system messages */
+        }
+        #chat-log .ai {
+            background-color:var(--ai-message-bg); /* Light Theme: Pale Lavender */
+            color:var(--ai-message-text); /* Light Theme: Deep Purple */
+            border: 1px dashed var(--ai-message-border); /* Light Theme: Light-Medium Purple */
+            align-self:center;max-width:95%;width:auto;margin:5px 10px;
+            border-radius:var(--border-radius);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.03); /* Very subtle shadow */
+        }
+        #chat-log .ai .message-meta {
+            font-size:.8em;
+            color:var(--text-secondary); /* Light Theme */
+            margin-top:5px;text-align:left;font-weight:bold
+        }
+        .message-meta {
+            font-size:.75em;
+            color:var(--text-secondary); /* Light Theme: Muted Purple/Grey */
+            margin-top:4px;display:flex;align-items:center;justify-content:flex-end;
+            opacity: 0.8; /* Make meta slightly less prominent */
+        }
+        /* Specific meta colors for different bubble types if needed */
+        #chat-log .own .message-meta { color: rgba(255,255,255,0.8); } /* Lighter grey on purple */
+        #chat-log .peer .message-meta { color: var(--text-secondary); }
+        #chat-log .ai .message-meta { color: var(--text-secondary); }
+
+        /* Removed Flag Button styles */
+        .message.removed .message-content { color: var(--text-secondary); font-style: italic; text-decoration: line-through;}
+        .message.removed .message-meta { display: none; }
+
+        #message-input-container {
+            display:flex;
+            padding:8px 16px;
+            border-top:1px solid var(--border-primary); /* Light Theme */
+            background-color:var(--bg-primary); /* Light Theme: White */
+            align-items:flex-end;flex-shrink:0;gap:8px;
+            border-bottom-left-radius: var(--border-radius); /* Match container rounding */
+            border-bottom-right-radius: var(--border-radius);
+        }
+        #send-btn {margin:0;flex-shrink:0;align-self:flex-end}
+        #status {
+            font-weight:500;padding:10px 16px;font-size:1em;text-align:center;margin-bottom:24px;
+            border-radius:var(--border-radius);
+            border:1px solid transparent;
+            transition:background-color .3s ease,color .3s ease,border-color .3s ease;
+            flex-shrink: 0;
+        }
+        .status-disconnected {background-color:var(--status-error-bg);color:var(--status-error-text);border-color:var(--status-error-border)} /* Light Theme */
+        .status-connecting {background-color:var(--status-connecting-bg);color:var(--status-connecting-text);border-color:var(--status-connecting-border)} /* Light Theme */
+        .status-connected {background-color:var(--status-success-bg);color:var(--status-success-text);border-color:var(--status-success-border)} /* Light Theme */
+
+        .hidden {display:none!important}
+        #connection-setup { padding-bottom:16px; margin-bottom:16px;text-align:center; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;} /* Prevent shrinking */
+        #connection-setup h3 {font-size:1.2em;font-weight:600;margin-top:0;margin-bottom:16px;color:var(--text-primary);text-align:center;width: 100%;} /* Light Theme */
+        #connection-setup hr { border: none; border-top: 1px solid var(--border-secondary); margin: 24px 0; width: 80%; } /* Light Theme */
+        #connection-setup label[for="topic-select"] { display: block; margin-bottom: 8px; font-weight: normal; color: var(--text-secondary); } /* Light Theme */
+        #join-selected-controls { display: flex; align-items: center; gap: 8px; margin-top: 0; justify-content: center; width: 100%; max-width: 450px; margin-bottom: 10px; }
+        #join-selected-controls select { max-width: 300px; flex-grow: 1; }
+        #join-selected-controls button { margin: 0; flex-shrink: 0; }
+        #connection-status-text {font-size:.9em;color:var(--text-secondary);text-align:center;min-height:1.5em;margin-top:15px} /* Light Theme */
+        #current-topic {text-align:center;font-size:1.1em;margin-bottom:5px;margin-top:5px;color:var(--text-primary);font-weight:600; flex-shrink: 0;} /* Light Theme */
+        #peer-count {text-align:center;font-size:.85em;color:var(--text-secondary);margin-top:-5px;margin-bottom:10px; flex-shrink: 0;} /* Light Theme */
+        .bottom-controls { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-shrink: 0; }
+        .bottom-controls button { margin: 0; }
+
+        footer {
+            text-align:center;
+            padding: 16px 24px; /* Added horizontal padding */
+            font-size:.85em;
+            color:var(--text-secondary); /* Light Theme */
+            width:100%;
+            border-top:1px solid var(--border-primary); /* Light Theme */
+            margin-top: 0; /* Remove auto margin */
+            flex-shrink: 0;
+            background-color: var(--bg-primary); /* Match container */
+            box-sizing: border-box; /* Include padding in width */
+            margin-bottom: 0; /* Ensure it sits at bottom */
+        }
+        .ai-thinking-message { font-style: italic; opacity: 0.7; color: var(--system-message-color); }
+    </style>
+</head>
+<body>
+    <!-- Main Content Container -->
+    <div class="container">
+        <div class="header">
+            <h2><span class="brand">UoPeople</span>: AI-Assisted Collaboration</h2>
+        </div>
+
+        <div class="content-area">
+            <div id="status" class="status status-disconnected">Status: Disconnected</div>
+
+            <!-- Connection Setup -->
+            <div id="connection-setup">
+                <h3>Join a Chat Room</h3>
+                <label for="topic-select">Choose Program & Major:</label>
+                <div id="join-selected-controls">
+                    <select id="topic-select">
+                        <option value="">-- Select Program/Major --</option>
+                        <optgroup label="Certificate Programs">
+                            <option value="Certificate-Business Administration">Business Administration</option>
+                            <option value="Certificate-Computer Science">Computer Science</option>
+                            <option value="Certificate-Health Science">Health Science</option>
+                            <option value="Certificate-ESL">ESL</option>
+                        </optgroup>
+                        <optgroup label="Associate's Degree">
+                            <option value="Associate's-Business Administration">Business Administration</option>
+                            <option value="Associate's-Computer Science">Computer Science</option>
+                            <option value="Associate's-Health Science">Health Science</option>
+                        </optgroup>
+                        <optgroup label="Bachelor's Degree">
+                            <option value="Bachelor's-Business Administration">Business Administration</option>
+                            <option value="Bachelor's-Computer Science">Computer Science</option>
+                            <option value="Bachelor's-Health Science">Health Science</option>
+                        </optgroup>
+                        <optgroup label="Master's Degree">
+                            <option value="Master's-Business Administration">Business Administration</option>
+                            <option value="Master's-Information Technology">Information Technology</option>
+                            <option value="Master's-Education">Education</option>
+                        </optgroup>
+                    </select>
+                    <button id="join-selected-btn">Join</button>
+                </div>
+                 <p id="connection-status-text"></p> <!-- Moved status text here -->
+
+                <!-- P2P Button Section -->
+                <hr>
+                <label for="p2p-button">Or P2P Chatting:</label> <!-- Added label for clarity -->
+                <button id="p2p-button" onclick="window.location.href='p2p.html'" style="margin-top: 15px;">P2P Chat</button>
+                <!-- End P2P Button Section -->
+            </div>
+
+            <!-- Chat Section (Initially Hidden) -->
+            <div id="chat-interface" class="hidden">
+                 <div id="current-topic">Topic: ...</div>
+                 <div id="peer-count">Peers: ...</div>
+                 <div id="chat-area-wrapper">
+                    <div id="chat-log"><div id="chat-log-inner"><!-- Messages Appear Here --></div></div>
+                    <div id="message-input-container">
+                        <!-- *** UPDATED PLACEHOLDER *** -->
+                        <textarea id="message-input" placeholder="Type message..." rows="1"></textarea>
+                        <button id="send-btn" aria-label="Send Message">Send</button>
+                    </div>
+                 </div>
+                 <div class="bottom-controls">
+                    <button id="ask-ai-btn" class="secondary" disabled>Ask AI</button>
+                    <button id="disconnect-btn" class="disconnect">Leave Room</button>
+                 </div>
+            </div>
+        </div> <!-- End content-area -->
+    </div> <!-- End container -->
+
+    <!-- Footer -->
+    <footer>
+        Stimuli Network • Anonymous-AI Chat
+    </footer>
+
+    <!-- JavaScript (Updated) -->
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // --- Config ---
+            const WEBSOCKET_URL = 'wss://stimuli-network.onrender.com';
+            // REMOVED WORD_LIMIT constant
+
+            // --- DOM Elements ---
+            const connectionStatusText = document.getElementById('connection-status-text');
+            const statusDiv = document.getElementById('status');
+            const connectionSetupDiv = document.getElementById('connection-setup');
+            const chatInterfaceDiv = document.getElementById('chat-interface');
+            const chatLog = document.getElementById('chat-log');
+            const chatLogInner = document.getElementById('chat-log-inner');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            const currentTopicDiv = document.getElementById('current-topic');
+            const peerCountDiv = document.getElementById('peer-count');
+            const askAiBtn = document.getElementById('ask-ai-btn');
+            const topicSelect = document.getElementById('topic-select');
+            const joinSelectedBtn = document.getElementById('join-selected-btn');
+
+            // --- State Variables ---
+            let webSocket = null;
+            let myPeerId = null;
+            let currentTopic = null;
+            let currentPeers = [];
+            let isAIThinking = false;
+            let hasChatActivity = false;
+            let lastMessageWasAI = false;
+
+            // --- Utility Functions ---
+            function log(message) { console.log(`[LOG] ${message}`); }
+            function logError(message, error) { console.error(`[ERROR] ${message}`, error instanceof Error ? error : new Error(String(error))); }
+
+            function updateAskAIButtonState() {
+                const isConnected = statusDiv.className.includes('status-connected');
+                askAiBtn.disabled = !isConnected || isAIThinking || !hasChatActivity || lastMessageWasAI;
+            }
+
+            function updateStatus(message, type = 'disconnected') {
+                const isConnected = (type === 'connected');
+                statusDiv.textContent = `Status: ${message}`; statusDiv.className = `status status-${type}`;
+                connectionSetupDiv.classList.toggle('hidden', isConnected); chatInterfaceDiv.classList.toggle('hidden', !isConnected);
+                joinSelectedBtn.disabled = (type === 'connecting' || type === 'connected'); topicSelect.disabled = (type === 'connecting' || type === 'connected');
+                updateAskAIButtonState();
+            }
+
+            function displayMessage(text, sender, isError = false, isAI = false, messageId = null, senderId = null) {
+                 if (!chatLogInner || !chatLog) return;
+                const msgDiv = document.createElement('div'); msgDiv.className = `message ${isAI ? 'ai' : sender}`;
+                if (messageId) msgDiv.dataset.messageId = messageId;
+                if (sender === 'system' && messageId) { msgDiv.id = messageId; if (messageId === 'ai-thinking-message') msgDiv.classList.add('ai-thinking-message'); }
+                const contentSpan = document.createElement('span'); contentSpan.className = 'message-content'; contentSpan.textContent = text; msgDiv.appendChild(contentSpan);
+                if (isError) { msgDiv.style.color = 'var(--status-error-text)'; msgDiv.style.fontStyle = 'italic'; }
+                const metaDiv = document.createElement('div'); metaDiv.className = 'message-meta'; let metaAdded = false;
+                if (isAI) { const senderSpan = document.createElement('span'); senderSpan.className = 'message-sender'; senderSpan.textContent = `AI Assistant`; metaDiv.appendChild(senderSpan); metaAdded = true; }
+                if (metaAdded) msgDiv.appendChild(metaDiv);
+                chatLogInner.appendChild(msgDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+
+                lastMessageWasAI = isAI;
+                if (sender === 'peer' || sender === 'own') { hasChatActivity = true; }
+                updateAskAIButtonState();
+            }
+
+            function removeThinkingMessage() { const thinkingMsg = document.getElementById('ai-thinking-message'); if (thinkingMsg) thinkingMsg.remove(); }
+
+            function resetUIForDisconnect() {
+                 if(messageInput) { messageInput.value = ''; messageInput.style.height = 'auto'; adjustTextareaHeight(messageInput); }
+                 if(chatLogInner) chatLogInner.innerHTML = '';
+                 connectionStatusText.textContent = '';
+                 currentTopicDiv.textContent = 'Topic: ...'; peerCountDiv.textContent = 'Peers: ...';
+                 joinSelectedBtn.disabled = false; topicSelect.disabled = false; topicSelect.value = "";
+                 isAIThinking = false; askAiBtn.textContent = 'Ask AI';
+                 hasChatActivity = false; lastMessageWasAI = false;
+                 updateStatus("Disconnected", "disconnected");
+            }
+
+            function closeConnection(triggeredBy = "unknown") {
+                if (closeConnection.closing) { return; } closeConnection.closing = true; log(`Closing connection: ${triggeredBy}`);
+                if (webSocket) { if (webSocket.readyState === WebSocket.OPEN && (triggeredBy === 'disconnectHandler_button' || triggeredBy.startsWith('joinSelectedBtnHandler'))) { log("Sending leave"); safeWebSocketSend({ type: 'leave' }); } webSocket.onopen = null; webSocket.onmessage = null; webSocket.onerror = null; webSocket.onclose = null; if (webSocket.readyState === WebSocket.OPEN || webSocket.readyState === WebSocket.CONNECTING) { log(`Closing WS`); try { webSocket.close(1000, triggeredBy); } catch(e) { logError("WS close error", e); } } webSocket = null; }
+                myPeerId = null; currentTopic = null; currentPeers = [];
+                resetUIForDisconnect();
+                setTimeout(() => { closeConnection.closing = false; }, 200);
+            }
+            closeConnection.closing = false;
+
+            function safeWebSocketSend(data) { if (webSocket && webSocket.readyState === WebSocket.OPEN) { try { webSocket.send(JSON.stringify(data)); return true; } catch (e) { logError("WS send error", e); displayMessage("Server comm error.", "system", true); closeConnection("ws_send_error"); return false; } } else { logError("WS not open.", {readyState: webSocket?.readyState}); return false; } }
+
+            function connectWebSocket() {
+                 if (webSocket && (webSocket.readyState === WebSocket.OPEN || webSocket.readyState === WebSocket.CONNECTING)) { log("WS active."); return; }
+                 log(`Connecting WS to ${WEBSOCKET_URL} for topic: ${currentTopic}...`); connectionStatusText.textContent = "Connecting...";
+                 try { webSocket = new WebSocket(WEBSOCKET_URL); } catch (e) { logError("WS constructor failed", e); connectionStatusText.textContent = "Server URL error."; updateStatus("Failed", "disconnected"); return; }
+
+                 webSocket.onopen = () => { log("WS OPEN"); connectionStatusText.textContent = "Joining topic..."; updateStatus("Joining...", "connecting"); if (!safeWebSocketSend({ type: 'join', topic: currentTopic })) { logError("Initial join send failed."); } };
+                 webSocket.onmessage = async (message) => {
+                    let data; try { data = JSON.parse(message.data); log(`WS Recv: ${data.type}`); } catch(e) { logError("WS parse error", e); return; }
+                    if (!webSocket || webSocket.readyState !== WebSocket.OPEN) { log("Ignoring WS msg on non-open."); return; }
+                    switch (data.type) {
+                        case 'your_id': myPeerId = data.id; log(`My ID: ${myPeerId}`); break;
+                        case 'room_update':
+                            log(`Room update ${data.topic}: ${data.peers.length} peers. Reason: ${data.reason}`);
+                            if (data.topic !== currentTopic) return;
+                            currentPeers = data.peers || [];
+                            const selectedOption = topicSelect.querySelector(`option[value="${currentTopic}"]`);
+                            currentTopicDiv.textContent = `Topic: ${selectedOption ? selectedOption.textContent : currentTopic}`;
+                            peerCountDiv.textContent = `Peers: ${currentPeers.length}`;
+                            if (currentPeers.includes(myPeerId)) {
+                                if (data.reason === `peer_joined`) { hasChatActivity = false; lastMessageWasAI = false; }
+                                updateStatus("Connected", "connected"); connectionStatusText.textContent = "";
+                                if (data.reason === 'peer_joined') displayMessage(`A peer joined.`, "system");
+                                else if (data.reason === 'peer_left') displayMessage(`A peer left.`, "system");
+                            } else { logError("Not in peer list?", data); closeConnection("room_update_mismatch"); }
+                            break;
+                        case 'chat_message': if (data.topic === currentTopic) { displayMessage(data.message, 'peer'); } break;
+                        case 'ai_message': if (data.topic === currentTopic) { removeThinkingMessage(); displayMessage(data.message, 'ai', false, true); isAIThinking = false; askAiBtn.textContent = 'Ask AI'; updateAskAIButtonState(); } break;
+                        case 'system_message': if (data.topic === currentTopic) { if (data.message.includes("AI is thinking...")) { removeThinkingMessage(); displayMessage(data.message, 'system', false, false, 'ai-thinking-message'); isAIThinking = true; askAiBtn.textContent = 'AI Thinking...'; updateAskAIButtonState(); } else { displayMessage(data.message, 'system'); } } break;
+                        case 'room_full': logError(`Room '${data.topic}' full.`); updateStatus("Room Full", "disconnected"); connectionStatusText.textContent = `Room '${data.topic}' is full. Try another.`; currentTopic = null; closeConnection("room_full"); break;
+                        case 'disconnect_inactive': logError(`Kicked inactive '${data.topic}'.`); updateStatus("Disconnected", "disconnected"); connectionStatusText.textContent = `Disconnected (inactivity).`; displayMessage(`Disconnected due to inactivity.`, "system", true); closeConnection("inactive_kick"); break;
+                        case 'disconnect_moderation': logError(`Kicked moderation. Reason: ${data.reason || 'N/A'}`); updateStatus("Disconnected", "disconnected"); connectionStatusText.textContent = `Disconnected by moderation.`; displayMessage(`You were disconnected due to message content. Reason: ${data.reason || 'Policy Violation'}`, "system", true); closeConnection("moderated_off"); break;
+                        case 'error': logError("Server error:", data.message); connectionStatusText.textContent = `Server Error: ${data.message}`; updateStatus("Error", "disconnected"); displayMessage(`Server error: ${data.message}`, "system", true); closeConnection("server_error"); break;
+                        default: log(`Unknown WS type: ${data.type}`); break;
+                    }
+                 };
+                 webSocket.onerror = (e) => { logError("WS error", e); connectionStatusText.textContent = "Server connection error."; if (currentTopic == null) updateStatus("Failed", "disconnected"); closeConnection("ws_onerror"); };
+                 webSocket.onclose = (e) => { log(`WS CLOSED (${e.code})`); if (webSocket) { const unexpected = (e.code !== 1000 && e.code !== 1005); if (unexpected) { logError(`WS closed unexpectedly (${e.code})`); connectionStatusText.textContent = "Lost server connection."; if(webSocket || statusDiv.className.includes('status-connecting')) displayMessage("Lost server connection.", "system", true); } closeConnection(`ws_onclose_${unexpected ? e.code : 'normal'}`); } };
+            } // End connectWebSocket
+
+            // --- Shared Join Logic ---
+            function initiateJoin(topicToJoin, triggerSource = "unknown") {
+                 log(`Initiating join for topic: ${topicToJoin} from ${triggerSource}`);
+                 if (!topicToJoin) {
+                     alert("Please select a valid Program/Major.");
+                     return;
+                 }
+                 if (webSocket) { if (webSocket.readyState === WebSocket.CONNECTING) { log("WS connecting, wait."); return; } else if (webSocket.readyState === WebSocket.OPEN) { if (currentTopic === topicToJoin && statusDiv.className.includes('status-connected')) { log(`Already connected to ${topicToJoin}.`); return; } else { log(`Switching/rejoining. Close old ${currentTopic}`); closeConnection(`${triggerSource}_switch`); setTimeout(() => { currentTopic = topicToJoin; connectWebSocket(); }, 250); } } else { log("WS closed/closing. Fresh."); currentTopic = topicToJoin; closeConnection(`${triggerSource}_stale_ws`); connectWebSocket(); } }
+                 else { log("No WS. Fresh."); currentTopic = topicToJoin; connectWebSocket(); }
+             }
+
+            // --- Button Click Handlers ---
+            function joinSelectedBtnHandler() { const selectedTopic = topicSelect.value; log(`Join Selected clicked for: ${selectedTopic}`); if (!selectedTopic) { alert("Please select a Program/Major first."); return; } initiateJoin(selectedTopic, "joinSelectedBtnHandler"); }
+
+            function sendHandler() {
+                 const messageText = messageInput.value.trim();
+                 if (!messageText) return;
+
+                 // --- REMOVED WORD LIMIT CHECK ---
+                 // const words = messageText.split(/\s+/).filter(word => word.length > 0);
+                 // if (words.length > WORD_LIMIT) {
+                 //    displayMessage(`Max ${WORD_LIMIT} words (${words.length}).`, "system", true);
+                 //    return;
+                 // }
+                 // --- END REMOVED WORD LIMIT CHECK ---
+
+                 if (!safeWebSocketSend({ type: 'chat_message', topic: currentTopic, message: messageText })) {
+                     logError("Send fail: WS");
+                     displayMessage("Send failed.", "system", true);
+                 } else {
+                     displayMessage(messageText, 'own');
+                     messageInput.value = '';
+                     messageInput.focus();
+                     adjustTextareaHeight(messageInput);
+                 }
+            }
+            function disconnectHandler() { displayMessage("Leaving room...", "system"); closeConnection("disconnectHandler_button"); }
+            function askAiBtnHandler() {
+                 if (!currentTopic || isAIThinking || !hasChatActivity || lastMessageWasAI) { logError(`Cannot ask AI: T:${currentTopic}, Th:${isAIThinking}, A:${hasChatActivity}, LA:${lastMessageWasAI}`); if (!hasChatActivity && currentTopic) { displayMessage("Cannot ask AI until chat messages exist.", "system", true); } else if (lastMessageWasAI && currentTopic) { displayMessage("Cannot ask AI immediately after an AI response.", "system", true); } return; }
+                 log(`Ask AI: ${currentTopic}`); if (!safeWebSocketSend({ type: 'ask_ai', topic: currentTopic })) { logError("Send ask_ai fail"); displayMessage("AI request failed.", "system", true); } else { /* State handled by system message */ }
+             }
+
+            // --- Input Event Handlers ---
+            function adjustTextareaHeight(el) { if (!el) return; el.style.height = 'auto'; const maxH = 150; const scrollH = el.scrollHeight; const minH = 34; const newH = Math.max(minH, Math.min(scrollH, maxH)); el.style.height = newH + 'px'; el.style.overflowY = scrollH > maxH ? 'auto' : 'hidden'; }
+            function messageInputHandler(e) { if (e && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendHandler(); } else { adjustTextareaHeight(messageInput); } }
+
+            // --- Initialization ---
+            function initialize() {
+                 if (!connectionStatusText || !statusDiv || !connectionSetupDiv || !chatInterfaceDiv || !chatLog || !chatLogInner || !messageInput || !sendBtn || !disconnectBtn || !currentTopicDiv || !peerCountDiv || !askAiBtn || !topicSelect || !joinSelectedBtn ) { logError("DOM init failed!"); document.body.innerHTML = "<h1>Error: Init failed. Check IDs.</h1>"; return; }
+                 joinSelectedBtn.onclick = joinSelectedBtnHandler;
+                 sendBtn.onclick = sendHandler;
+                 disconnectBtn.onclick = disconnectHandler;
+                 messageInput.onkeydown = messageInputHandler; messageInput.oninput = () => adjustTextareaHeight(messageInput);
+                 askAiBtn.onclick = askAiBtnHandler;
+                 closeConnection("initialize");
+                 adjustTextareaHeight(messageInput);
+                 log("Anonymous AI Chat Initialized");
+                 connectionStatusText.textContent = '';
+            }
+            initialize();
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>
